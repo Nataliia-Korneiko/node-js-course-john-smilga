@@ -1,6 +1,7 @@
 require('express-async-errors');
 require('dotenv').config();
 const express = require('express');
+const mainRoutes = require('./routes/main');
 const connectDB = require('./db/connect');
 const notFound = require('./middleware/not-found');
 const errorHandler = require('./middleware/error-handler');
@@ -10,6 +11,9 @@ const { DB_CONNECTION, PORT = 5000 } = process.env;
 
 app.use(express.static('./public'));
 app.use(express.json());
+
+app.use('/api/v1', mainRoutes);
+
 app.use(notFound);
 app.use(errorHandler);
 
