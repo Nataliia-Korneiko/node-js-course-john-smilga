@@ -6,6 +6,7 @@ const jobsRoutes = require('./routes/jobs');
 const connectDB = require('./db/connect');
 const notFound = require('./middleware/not-found');
 const errorHandler = require('./middleware/error-handler');
+const authenticateUser = require('./middleware/auth');
 
 const app = express();
 const { DB_CONNECTION, PORT = 5000 } = process.env;
@@ -13,7 +14,7 @@ const { DB_CONNECTION, PORT = 5000 } = process.env;
 app.use(express.json());
 
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/jobs', jobsRoutes);
+app.use('/api/v1/jobs', authenticateUser, jobsRoutes); // authenticateUser - protected routes
 
 app.use(notFound);
 app.use(errorHandler);
