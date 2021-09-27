@@ -8,7 +8,7 @@ const { JWT_SECRET_KEY, JWT_LIFETIME } = process.env;
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    minLength: 3,
+    minLength: 2,
     maxLength: 50,
     required: [true, 'Please provide name'],
   },
