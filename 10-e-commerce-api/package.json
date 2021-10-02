@@ -1,0 +1,21 @@
+{
+  "name": "10-e-commerce-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start:dev": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "Nataliia Korneiko <korneyko_ns@ukr.net>",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express-async-errors": "^3.1.1",
+    "http-status-codes": "^2.1.4",
+    "mongoose": "^6.0.8"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.13"
+  }
+}
