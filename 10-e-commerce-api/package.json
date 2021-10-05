@@ -10,10 +10,15 @@
   "author": "Nataliia Korneiko <korneyko_ns@ukr.net>",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.5",
     "dotenv": "^10.0.0",
     "express-async-errors": "^3.1.1",
     "http-status-codes": "^2.1.4",
-    "mongoose": "^6.0.8"
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.8",
+    "morgan": "^1.10.0",
+    "validator": "^13.6.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.13"
