@@ -1,32 +1,38 @@
-// const jwt = require('jsonwebtoken');
-// const User = require('../models/user');
-// const { UnauthenticatedError } = require('../errors');
-// require('dotenv').config();
+const { UnauthenticatedError, UnauthorizedError } = require('../errors');
+const { isTokenValid } = require('../utils');
 
-// const { JWT_SECRET_KEY } = process.env;
+const authenticateUser = async (req, res, next) => {
+  const token = req.signedCookies.token; // token - название cookie
 
-// const auth = async (req, res, next) => {
-//   // check header
-//   const authHeader = req.headers.authorization;
+  if (!token) {
+    throw new UnauthenticatedError('Authentication invalid');
+  }
 
-//   if (!authHeader || !authHeader.startsWith('Bearer')) {
-//     throw new UnauthenticatedError('No token provided');
-//   }
+  try {
+    // const payload = isTokenValid({ token });
+    const { name, userId, role } = isTokenValid({ token });
+    req.user = { name, userId, role };
 
-//   const token = authHeader.split(' ')[1];
+    next();
+  } catch (error) {
+    throw new UnauthenticatedError('Authentication invalid');
+  }
+};
 
-//   try {
-//     const payload = jwt.verify(token, JWT_SECRET_KEY);
+// authorizePermissions
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    const { role } = req.user;
 
-//     // attach the user to the job routes
-//     // const user = User.findById(payload.id).select('-password');
-//     // req.user = user;
+    if (!roles.includes(role)) {
+      throw new UnauthorizedError('Unauthorized to access this route');
+    }
 
-//     req.user = { userId: payload.userId, name: payload.name }; // для controllers
-//     next();
-//   } catch (error) {
-//     throw new UnauthenticatedError('Authentication invalid');
-//   }
-// };
+    next();
+  };
+};
 
-// module.exports = auth;
+module.exports = {
+  authenticateUser,
+  authorizeRoles,
+};

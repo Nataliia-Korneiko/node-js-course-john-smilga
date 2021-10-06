@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre('save', async function () {
+  // console.log(this.modifiedPaths()); // [ 'name' ]
+  // console.log(this.isModified('name')); // true or false
+
+  if (!this.isModified('password')) return; // если пароль не менялся, не нужно повторно его хешировать
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

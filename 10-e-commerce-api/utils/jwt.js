@@ -12,8 +12,8 @@ const createJWT = ({ payload }) => {
 
 const isTokenValid = ({ token }) => jwt.verify(token, JWT_SECRET_KEY);
 
-const sendResponseWithCookie = ({ res, statusCode, user, options }) => {
-  const token = createJWT({ payload: { user }, options });
+const sendResponseWithCookie = ({ res, user }) => {
+  const token = createJWT({ payload: user });
 
   const oneDay = 1000 * 60 * 60 * 24; // 1d
 
