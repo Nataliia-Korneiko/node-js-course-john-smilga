@@ -60,7 +60,21 @@ const productSchema = new mongoose.Schema(
       ref: 'user',
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } } // virtuals - добавляет массив reviews в getSingleProduct
 );
+
+// для controllers -> getSingleProduct -> populate('reviews')
+productSchema.virtual('reviews', {
+  ref: 'review',
+  localField: '_id',
+  foreignField: 'product',
+  justOne: false,
+  // match: { rating: 3 }, // покажет все reviews только с rating: 3
+});
+
+// при удалении продукта удаляем все reviews данного продукта
+productSchema.pre('remove', async function (next) {
+  await this.model('review').deleteMany({ product: this._id });
+});
 
 module.exports = mongoose.model('product', productSchema);

@@ -11,7 +11,7 @@ const getAllProducts = async (req, res) => {
 
 const getSingleProduct = async (req, res) => {
   const { id: productId } = req.params;
-  const product = await Product.findOne({ _id: productId });
+  const product = await Product.findOne({ _id: productId }).populate('reviews');
 
   if (!product) {
     throw new NotFoundError(`No product with id: ${productId}`);
@@ -51,7 +51,7 @@ const deleteProduct = async (req, res) => {
     throw new NotFoundError(`No product with id: ${productId}`);
   }
 
-  await product.remove();
+  await product.remove(); // используем remove() чтобы удалить все reviews данного продукта в model -> product
 
   res.status(StatusCodes.OK).json({ msg: 'Product removed' });
 };

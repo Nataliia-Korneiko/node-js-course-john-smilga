@@ -8,6 +8,7 @@ const {
   deleteProduct,
   uploadProductImage,
 } = require('../controllers/product');
+const { getSingleProductReviews } = require('../controllers/review');
 const { authenticateUser, authorizeRoles } = require('../middleware/auth');
 
 router.post('/', [authenticateUser, authorizeRoles('admin')], createProduct);
@@ -28,5 +29,7 @@ router.delete(
   [authenticateUser, authorizeRoles('admin')],
   deleteProduct
 );
+
+router.get('/:id/reviews', getSingleProductReviews);
 
 module.exports = router;

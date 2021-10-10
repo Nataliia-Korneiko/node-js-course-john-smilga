@@ -1,12 +1,8 @@
 const { StatusCodes } = require('http-status-codes');
 const Review = require('../models/review');
 const Product = require('../models/product');
-const { checkPermissions, isTokenValid } = require('../utils');
-const {
-  NotFoundError,
-  BadRequestError,
-  UnauthenticatedError,
-} = require('../errors');
+const { checkPermissions } = require('../utils');
+const { NotFoundError, BadRequestError } = require('../errors');
 
 const getAllReviews = async (req, res) => {
   const reviews = await Review.find({}).populate({
@@ -98,10 +94,20 @@ const deleteReview = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: 'Review removed' });
 };
 
+// получить все reviews одного продукта: routes -> product.js
+const getSingleProductReviews = async (req, res) => {
+  const { id: productId } = req.params;
+
+  const reviews = await Review.find({ product: productId });
+
+  res.status(StatusCodes.OK).json({ count: reviews.length, reviews });
+};
+
 module.exports = {
   getAllReviews,
   getSingleReview,
   createReview,
   updateReview,
   deleteReview,
+  getSingleProductReviews,
 };
