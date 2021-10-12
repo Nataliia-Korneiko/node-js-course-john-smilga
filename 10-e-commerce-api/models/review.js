@@ -34,4 +34,43 @@ const reviewSchema = mongoose.Schema(
 
 reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
+// aggregation
+reviewSchema.statics.calculateAverageRating = async function (productId) {
+  // console.log(productId); // id продукта при добавлении или удалении продукта
+  const result = await this.aggregate([
+    { $match: { product: productId } },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: '$rating' },
+        numOfReviews: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // console.log(result);
+
+  try {
+    await this.model('product').findOneAndUpdate(
+      { _id: productId },
+      {
+        averageRating: Math.ceil(result[0]?.averageRating || 0), // averageRating - средний рейтинг продукта
+        numOfReviews: result[0]?.numOfReviews || 0,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// updateReview
+reviewSchema.post('save', async function () {
+  await this.constructor.calculateAverageRating(this.product);
+});
+
+// deleteReview
+reviewSchema.post('remove', async function () {
+  await this.constructor.calculateAverageRating(this.product);
+});
+
 module.exports = mongoose.model('review', reviewSchema);
