@@ -4,6 +4,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
+const cors = require('cors');
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
 const productRouter = require('./routes/product');
@@ -15,12 +16,16 @@ const errorHandler = require('./middleware/error-handler');
 const app = express();
 const { JWT_SECRET_KEY, DB_CONNECTION, PORT = 5000 } = process.env;
 
+app.use(cors()); // для client на http://localhost:3000
 app.use(express.static('./public'));
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use(cookieParser(JWT_SECRET_KEY));
 app.use(fileUpload());
 
+// testing cookies router
+// после login получаем token в cookies браузера, нажимаем testing и получаем token в console.log
+// после logout token в cookies браузера удаляется
 app.get('/api/v1', (req, res) => {
   // console.log(req.cookies);
   console.log(req.signedCookies);
