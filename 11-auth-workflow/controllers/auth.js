@@ -1,13 +1,13 @@
 const crypto = require('crypto');
 const { StatusCodes } = require('http-status-codes');
 const User = require('../models/user');
+const Token = require('../models/token');
 const {
   attachCookiesToResponse,
   createTokenUser,
   sendVerificationEmail,
 } = require('../utils');
 const { BadRequestError, UnauthenticatedError } = require('../errors');
-const sendEmail = require('../utils/sendEmail');
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -33,6 +33,19 @@ const register = async (req, res) => {
   });
 
   const origin = 'http://localhost:3000'; // client
+
+  // const newOrigin = 'https://react-node-user-workflow-front-end.netlify.app';
+  // const tempOrigin = req.get('origin');
+  // const protocol = req.protocol;
+  // const host = req.get('host');
+  // const forwardedHost = req.get('x-forwarded-host');
+  // const forwardedProtocol = req.get('x-forwarded-proto');
+
+  // console.log('tempOrigin:', tempOrigin);
+  // console.log('protocol:', protocol);
+  // console.log('host:', host);
+  // console.log('forwardedHost:', forwardedHost);
+  // console.log('forwardedProtocol:', forwardedProtocol);
 
   await sendVerificationEmail({
     name: user.name,
@@ -79,12 +92,52 @@ const login = async (req, res) => {
 
   const tokenUser = createTokenUser(user);
 
-  attachCookiesToResponse({ res, user: tokenUser });
+  // create refresh token
+  let refreshToken = '';
+
+  // check for existing token
+  const existingToken = await Token.findOne({ user: user._id });
+
+  if (existingToken) {
+    const { isValid } = existingToken;
+
+    if (!isValid) {
+      throw new UnauthenticatedError('Invalid credentials');
+    }
+
+    refreshToken = existingToken.refreshToken;
+    attachCookiesToResponse({ res, user: tokenUser, refreshToken });
+
+    res.status(StatusCodes.OK).json({ user: tokenUser });
+    return;
+  }
+
+  refreshToken = crypto.randomBytes(40).toString('hex');
+  const ip = req.ip;
+  const userAgent = req.headers['user-agent'];
+
+  const userToken = {
+    refreshToken,
+    ip,
+    userAgent,
+    user: user._id,
+  };
+
+  await Token.create(userToken);
+
+  attachCookiesToResponse({ res, user: tokenUser, refreshToken });
   res.status(StatusCodes.OK).json({ user: tokenUser });
 };
 
 const logout = async (req, res) => {
-  res.cookie('token', 'logout', {
+  await Token.findOneAndDelete({ user: req.user.userId });
+
+  res.cookie('accessToken', 'logout', {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+
+  res.cookie('refreshToken', 'logout', {
     httpOnly: true,
     expires: new Date(Date.now()),
   });
@@ -105,8 +158,11 @@ const verifyEmail = async (req, res) => {
     throw new UnauthenticatedError('Verification failed');
   }
 
-  user.isVerified = true;
-  user.verified = Date.now();
+  // user.isVerified = true;
+  // user.verified = Date.now();
+  // user.verificationToken = '';
+
+  (user.isVerified = true), (user.verified = Date.now());
   user.verificationToken = '';
 
   await user.save();
