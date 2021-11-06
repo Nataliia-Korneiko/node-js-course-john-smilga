@@ -1,8 +1,8 @@
-const User = require('../models/user');
 const { StatusCodes } = require('http-status-codes');
+const User = require('../models/user');
 const {
   createTokenUser,
-  sendResponseWithCookie,
+  attachCookiesToResponse,
   checkPermissions,
 } = require('../utils');
 const {
@@ -60,7 +60,7 @@ const showCurrentUser = async (req, res) => {
 
 //   const tokenUser = createTokenUser(user);
 
-//   sendResponseWithCookie({ res, user: tokenUser });
+//   attachCookiesToResponse({ res, user: tokenUser });
 //   res.status(StatusCodes.OK).json({ user: tokenUser });
 // };
 
@@ -81,7 +81,7 @@ const updateUser = async (req, res) => {
 
   const tokenUser = createTokenUser(user);
 
-  sendResponseWithCookie({ res, user: tokenUser });
+  attachCookiesToResponse({ res, user: tokenUser });
   res.status(StatusCodes.OK).json({ user: tokenUser });
 };
 
