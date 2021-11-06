@@ -11,7 +11,7 @@ const sendVerificationEmail = async ({
 
   return sendEmail({
     to: email,
-    subject: 'Email Confirmation',
+    subject: 'Verify Email',
     html: `<h4>Hello, ${name}!</h4>
     ${message}
     `,

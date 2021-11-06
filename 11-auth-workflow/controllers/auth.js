@@ -6,6 +6,8 @@ const {
   attachCookiesToResponse,
   createTokenUser,
   sendVerificationEmail,
+  sendResetPasswordEmail,
+  createHash,
 } = require('../utils');
 const { BadRequestError, UnauthenticatedError } = require('../errors');
 
@@ -158,16 +160,78 @@ const verifyEmail = async (req, res) => {
     throw new UnauthenticatedError('Verification failed');
   }
 
-  // user.isVerified = true;
-  // user.verified = Date.now();
-  // user.verificationToken = '';
-
-  (user.isVerified = true), (user.verified = Date.now());
+  user.isVerified = true;
+  user.verified = Date.now();
   user.verificationToken = '';
+
+  // (user.isVerified = true), (user.verified = Date.now());
+  // user.verificationToken = '';
 
   await user.save();
 
   res.status(StatusCodes.OK).json({ msg: 'Email verified' });
+};
+
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new BadRequestError('Please provide valid email');
+  }
+
+  const user = await User.findOne({ email });
+
+  if (user) {
+    const passwordToken = crypto.randomBytes(80).toString('hex');
+
+    // send email
+    const origin = 'http://localhost:3000'; // client
+
+    await sendResetPasswordEmail({
+      name: user.name,
+      email: user.email,
+      passwordToken,
+      origin,
+    });
+
+    const tenMinutes = 1000 * 60 * 10; // 10min
+    const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes);
+
+    user.passwordToken = createHash(passwordToken);
+    user.passwordTokenExpirationDate = passwordTokenExpirationDate;
+    await user.save();
+  }
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: 'Please check your email for reset password link' });
+};
+
+const resetPassword = async (req, res) => {
+  const { token, email, password } = req.body;
+
+  if (!token || !email || !password) {
+    throw new BadRequestError('Please provide all values');
+  }
+
+  const user = await User.findOne({ email });
+
+  if (user) {
+    const currentDate = new Date();
+
+    if (
+      user.passwordToken === createHash(token) &&
+      user.passwordTokenExpirationDate > currentDate
+    ) {
+      user.password = password;
+      user.passwordToken = null;
+      user.passwordTokenExpirationDate = null;
+
+      await user.save();
+    }
+  }
+
+  res.status(StatusCodes.OK).json({ msg: 'Password reset' });
 };
 
 module.exports = {
@@ -175,4 +239,6 @@ module.exports = {
   login,
   logout,
   verifyEmail,
+  forgotPassword,
+  resetPassword,
 };

@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
   verified: {
     type: Date,
   },
+  passwordToken: {
+    type: String,
+  },
+  passwordTokenExpirationDate: {
+    type: Date,
+  },
 });
 
 userSchema.pre('save', async function () {
